@@ -75,10 +75,10 @@ const MindMapCanvas: React.FC = () => {
         e.preventDefault();
         const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : [selectedNodeId];
         
-        // 检查是否包含任何主节点（parentId === null）
+        // 检查是否包含任何主节点（isRootNode === true）
         const hasRootNode = targetIds.some(id => {
           const node = currentMindMap?.nodes.find(n => n.id === id);
-          return node?.parentId === null;
+          return node?.isRootNode === true;
         });
         
         // 如果包含主节点，直接返回，不允许删除

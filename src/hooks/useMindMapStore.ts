@@ -9,6 +9,7 @@ export interface Node {
   positionX: number;
   positionY: number;
   color: string;
+  isRootNode: boolean; // 标记是否为主节点（第一个根节点，不能删除）
 }
 
 export interface MindMap {
@@ -114,6 +115,7 @@ export const useMindMapStore = create<MindMapState>()(
             positionY: parentNode ? 
               parentNode.positionY + (state.currentMindMap.nodes.filter(n => n.parentId === parentId).length * 80) : 0,
             color: NODE_COLORS[(parentNode ? parentNode.level + 1 : 0) % NODE_COLORS.length],
+            isRootNode: false // 子节点不是主节点
           };
           
           const newMindMap = {
@@ -147,6 +149,7 @@ export const useMindMapStore = create<MindMapState>()(
             positionX: x,
             positionY: y,
             color: NODE_COLORS[Math.floor(Math.random() * NODE_COLORS.length)],
+            isRootNode: false // 自由节点不是主节点，可以删除
           };
           
           const newMindMap = {
@@ -223,9 +226,9 @@ export const useMindMapStore = create<MindMapState>()(
         set((state) => {
           if (!state.currentMindMap) return state;
           
-          // 完全禁止删除主节点（parentId === null）
+          // 完全禁止删除主节点（isRootNode === true）
           const nodeToDelete = state.currentMindMap.nodes.find(n => n.id === nodeId);
-          if (nodeToDelete && nodeToDelete.parentId === null) {
+          if (nodeToDelete && nodeToDelete.isRootNode) {
             return state;
           }
           
@@ -277,6 +280,17 @@ export const useMindMapStore = create<MindMapState>()(
         const maps = JSON.parse(localStorage.getItem('saved-mind-maps') || '[]');
         const map = maps.find((m: MindMap) => m.id === id);
         if (map) {
+          // 兼容旧版本：如果节点没有 isRootNode 字段，自动检测第一个根节点
+          if (map.nodes && map.nodes.length > 0) {
+            let foundRootNode = false;
+            map.nodes = map.nodes.map(node => {
+              if (node.parentId === null && !foundRootNode) {
+                foundRootNode = true;
+                return { ...node, isRootNode: true };
+              }
+              return { ...node, isRootNode: false };
+            });
+          }
           get().setCurrentMindMap(map);
         }
       },
@@ -292,7 +306,8 @@ export const useMindMapStore = create<MindMapState>()(
             level: 0,
             positionX: 0,
             positionY: 0,
-            color: NODE_COLORS[0]
+            color: NODE_COLORS[0],
+            isRootNode: true // 标记为主节点
           }],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
