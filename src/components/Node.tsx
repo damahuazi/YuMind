@@ -4,17 +4,25 @@ import { Node as NodeType } from '../hooks/useMindMapStore';
 interface NodeProps {
   node: NodeType;
   isSelected: boolean;
+  isMultiSelected: boolean;
   onSelect: () => void;
+  onToggleSelect: () => void;
   onUpdate: (updates: Partial<NodeType>) => void;
+  onDragStart: (e: React.MouseEvent) => void;
 }
 
-const Node: React.FC<NodeProps> = ({ node, isSelected, onSelect, onUpdate }) => {
+const Node: React.FC<NodeProps> = ({ 
+  node, 
+  isSelected, 
+  isMultiSelected, 
+  onSelect, 
+  onToggleSelect, 
+  onUpdate,
+  onDragStart 
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(node.content);
   const inputRef = useRef<HTMLInputElement>(null);
-  const nodeRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -47,52 +55,14 @@ const Node: React.FC<NodeProps> = ({ node, isSelected, onSelect, onUpdate }) => 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isEditing) return;
     e.stopPropagation();
-    onSelect();
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - node.positionX,
-      y: e.clientY - node.positionY
-    });
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        onUpdate({
-          positionX: e.clientX - dragOffset.x,
-          positionY: e.clientY - dragOffset.y
-        });
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+    
+    if (e.ctrlKey || e.metaKey) {
+      onToggleSelect();
+    } else {
+      onSelect();
     }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dragOffset, onUpdate]);
-
-  const nodeStyle = {
-    left: `${node.positionX}px`,
-    top: `${node.positionY}px`,
-  };
-
-  const getColorStyle = (color: string) => {
-    const lighterColor = adjustColor(color, 20);
-    return {
-      background: `linear-gradient(135deg, ${color}, ${lighterColor})`,
-      boxShadow: isSelected 
-        ? `0 0 0 4px rgba(255,255,255,0.3), 0 10px 40px rgba(0,0,0,0.3)` 
-        : `0 4px 20px rgba(0,0,0,0.2)`
-    };
+    
+    onDragStart(e);
   };
 
   const adjustColor = (color: string, amount: number): string => {
@@ -104,20 +74,32 @@ const Node: React.FC<NodeProps> = ({ node, isSelected, onSelect, onUpdate }) => 
     return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`;
   };
 
+  const getNodeStyle = () => {
+    const lighterColor = adjustColor(node.color, 20);
+    return {
+      background: `linear-gradient(135deg, ${node.color}, ${lighterColor})`,
+      boxShadow: isSelected || isMultiSelected
+        ? `0 0 0 4px rgba(255,255,255,0.3), 0 10px 40px rgba(0,0,0,0.3)`
+        : `0 4px 20px rgba(0,0,0,0.2)`,
+    };
+  };
+
   return (
     <div
-      ref={nodeRef}
-      className="absolute cursor-default select-none"
-      style={nodeStyle}
+      className="absolute cursor-grab select-none"
+      style={{
+        left: `${node.positionX}px`,
+        top: `${node.positionY}px`,
+        zIndex: isSelected || isMultiSelected ? 50 : 10
+      }}
     >
       <div
         className={`
           relative min-w-[180px] max-w-[280px] rounded-2xl p-4 
           transition-all duration-200 ease-out
-          ${isSelected ? 'scale-105 z-50' : 'hover:scale-102 z-10'}
-          ${isDragging ? 'cursor-grabbing opacity-90' : 'cursor-grab'}
+          ${isSelected || isMultiSelected ? 'scale-105' : 'hover:scale-102'}
         `}
-        style={getColorStyle(node.color)}
+        style={getNodeStyle()}
         onMouseDown={handleMouseDown}
         onDoubleClick={handleDoubleClick}
       >
@@ -139,6 +121,11 @@ const Node: React.FC<NodeProps> = ({ node, isSelected, onSelect, onUpdate }) => 
             </div>
           )}
         </div>
+        {isMultiSelected && (
+          <div className="absolute -top-2 -left-2 w-5 h-5 bg-white rounded-full border-2 border-indigo-500 flex items-center justify-center">
+            <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ const Toolbar: React.FC = () => {
   const { 
     currentMindMap, 
     selectedNodeId, 
+    selectedNodeIds,
     addNode, 
     deleteNode, 
     undo, 
@@ -28,15 +29,46 @@ const Toolbar: React.FC = () => {
     loadMindMap
   } = useMindMapStore();
 
+  // 判断是否可以删除
+  const canDelete = () => {
+    if (selectedNodeIds.length === 0 && !selectedNodeId) return false;
+    
+    const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : [selectedNodeId];
+    
+    // 检查是否包含主节点且是唯一的
+    const hasRootNode = targetIds.some(id => {
+      const node = currentMindMap?.nodes.find(n => n.id === id);
+      return node?.parentId === null;
+    });
+    
+    if (hasRootNode) {
+      const allRootNodes = currentMindMap?.nodes.filter(n => n.parentId === null) || [];
+      if (allRootNodes.length === 1 && targetIds.includes(allRootNodes[0].id)) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
   const handleAddChild = () => {
-    if (selectedNodeId) {
-      addNode(selectedNodeId);
+    // 使用最后一个选中的节点作为父节点
+    const targetId = selectedNodeIds.length > 0 
+      ? selectedNodeIds[selectedNodeIds.length - 1] 
+      : selectedNodeId;
+      
+    if (targetId) {
+      addNode(targetId);
     }
   };
 
   const handleAddSibling = () => {
-    if (selectedNodeId && currentMindMap) {
-      const selectedNode = currentMindMap.nodes.find(n => n.id === selectedNodeId);
+    const targetId = selectedNodeIds.length > 0 
+      ? selectedNodeIds[selectedNodeIds.length - 1] 
+      : selectedNodeId;
+      
+    if (targetId && currentMindMap) {
+      const selectedNode = currentMindMap.nodes.find(n => n.id === targetId);
       if (selectedNode?.parentId) {
         addNode(selectedNode.parentId);
       }
@@ -44,7 +76,9 @@ const Toolbar: React.FC = () => {
   };
 
   const handleDelete = () => {
-    if (selectedNodeId) {
+    if (selectedNodeIds.length > 0) {
+      selectedNodeIds.forEach(id => deleteNode(id));
+    } else if (selectedNodeId) {
       deleteNode(selectedNodeId);
     }
   };
@@ -95,6 +129,11 @@ const Toolbar: React.FC = () => {
           <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
             思维导图
           </h1>
+          {selectedNodeIds.length > 1 && (
+            <span className="text-xs bg-indigo-600 px-2 py-1 rounded-full">
+              已选择 {selectedNodeIds.length} 个节点
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -129,7 +168,7 @@ const Toolbar: React.FC = () => {
 
           <button
             onClick={handleAddChild}
-            disabled={!selectedNodeId}
+            disabled={!selectedNodeId && selectedNodeIds.length === 0}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             title="添加子节点"
           >
@@ -139,7 +178,7 @@ const Toolbar: React.FC = () => {
 
           <button
             onClick={handleAddSibling}
-            disabled={!selectedNodeId}
+            disabled={!selectedNodeId && selectedNodeIds.length === 0}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             title="添加同级节点"
           >
@@ -149,7 +188,7 @@ const Toolbar: React.FC = () => {
 
           <button
             onClick={handleDelete}
-            disabled={!selectedNodeId}
+            disabled={!canDelete()}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             title="删除节点"
           >
@@ -193,4 +232,3 @@ const Toolbar: React.FC = () => {
 };
 
 export default Toolbar;
-
