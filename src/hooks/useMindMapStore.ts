@@ -223,12 +223,10 @@ export const useMindMapStore = create<MindMapState>()(
         set((state) => {
           if (!state.currentMindMap) return state;
           
+          // 完全禁止删除主节点（parentId === null）
           const nodeToDelete = state.currentMindMap.nodes.find(n => n.id === nodeId);
           if (nodeToDelete && nodeToDelete.parentId === null) {
-            const isRootAndOnly = state.currentMindMap.nodes.filter(n => n.parentId === null).length === 1;
-            if (isRootAndOnly) {
-              return state;
-            }
+            return state;
           }
           
           const deleteNodeRecursive = (id: string): string[] => {

@@ -47,45 +47,50 @@ const MindMapCanvas: React.FC = () => {
         return;
       }
 
-      if (selectedNodeId) {
-        if (e.key === 'Tab') {
-          e.preventDefault();
-          // 检查是否有多个节点被选中，如果有则只添加到最后一个
-          const targetNodeId = selectedNodeIds.length > 0 ? selectedNodeIds[selectedNodeIds.length - 1] : selectedNodeId;
-          // 这个功能在工具栏里
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          const selectedNode = currentMindMap?.nodes.find(n => n.id === selectedNodeId);
-          if (selectedNode?.parentId) {
-            // 这个功能在工具栏里
-          }
-        } else if (e.key === 'Delete' || e.key === 'Backspace') {
-          e.preventDefault();
-          if (selectedNodeIds.length > 0) {
-            // 检查是否包含主节点且是唯一的
-            const hasRootNode = selectedNodeIds.some(id => {
-              const node = currentMindMap?.nodes.find(n => n.id === id);
-              return node?.parentId === null;
-            });
-            
-            if (hasRootNode) {
-              const allRootNodes = currentMindMap?.nodes.filter(n => n.parentId === null) || [];
-              if (allRootNodes.length === 1 && selectedNodeIds.includes(allRootNodes[0].id)) {
-                return; // 不允许删除唯一的主节点
-              }
-            }
-            
-            selectedNodeIds.forEach(id => deleteNode(id));
-          } else if (selectedNodeId) {
-            const nodeToDelete = currentMindMap?.nodes.find(n => n.id === selectedNodeId);
-            if (nodeToDelete && nodeToDelete.parentId === null) {
-              const allRootNodes = currentMindMap?.nodes.filter(n => n.parentId === null) || [];
-              if (allRootNodes.length === 1) {
-                return; // 不允许删除唯一的主节点
-              }
-            }
-            deleteNode(selectedNodeId);
-          }
+      // Tab 添加子节点
+      if (e.key === 'Tab' && selectedNodeId) {
+        e.preventDefault();
+        const targetNodeId = selectedNodeIds.length > 0 
+          ? selectedNodeIds[selectedNodeIds.length - 1] 
+          : selectedNodeId;
+        const { addNode } = useMindMapStore.getState();
+        addNode(targetNodeId);
+      }
+      
+      // Enter 添加同级节点
+      if (e.key === 'Enter' && selectedNodeId) {
+        e.preventDefault();
+        const targetNodeId = selectedNodeIds.length > 0 
+          ? selectedNodeIds[selectedNodeIds.length - 1] 
+          : selectedNodeId;
+        const selectedNode = currentMindMap?.nodes.find(n => n.id === targetNodeId);
+        if (selectedNode?.parentId) {
+          const { addNode } = useMindMapStore.getState();
+          addNode(selectedNode.parentId);
+        }
+      }
+      
+      // Delete 删除节点 - 主节点完全禁止删除
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
+        e.preventDefault();
+        const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : [selectedNodeId];
+        
+        // 检查是否包含任何主节点（parentId === null）
+        const hasRootNode = targetIds.some(id => {
+          const node = currentMindMap?.nodes.find(n => n.id === id);
+          return node?.parentId === null;
+        });
+        
+        // 如果包含主节点，直接返回，不允许删除
+        if (hasRootNode) {
+          return;
+        }
+        
+        // 删除所有选中的非主节点
+        if (selectedNodeIds.length > 0) {
+          selectedNodeIds.forEach(id => deleteNode(id));
+        } else {
+          deleteNode(selectedNodeId);
         }
       }
     };
@@ -219,8 +224,8 @@ const MindMapCanvas: React.FC = () => {
     const node = currentMindMap?.nodes.find(n => n.id === nodeId);
     if (!node) return;
 
-    // 如果点击的节点没有被选中，或者没有多个节点被选中，就只选这个节点
-    if (!selectedNodeIds.includes(nodeId)) {
+    // 如果不是按着 Ctrl/Cmd 键，并且节点没有被选中，则只选中这个节点
+    if (!e.ctrlKey && !e.metaKey && !selectedNodeIds.includes(nodeId)) {
       setSelectedNodeId(nodeId);
     }
 

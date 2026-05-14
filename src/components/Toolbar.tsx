@@ -29,26 +29,20 @@ const Toolbar: React.FC = () => {
     loadMindMap
   } = useMindMapStore();
 
-  // 判断是否可以删除
+  // 判断是否可以删除 - 主节点完全禁止删除
   const canDelete = () => {
     if (selectedNodeIds.length === 0 && !selectedNodeId) return false;
     
     const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : [selectedNodeId];
     
-    // 检查是否包含主节点且是唯一的
+    // 检查是否包含任何主节点（parentId === null）
     const hasRootNode = targetIds.some(id => {
       const node = currentMindMap?.nodes.find(n => n.id === id);
       return node?.parentId === null;
     });
     
-    if (hasRootNode) {
-      const allRootNodes = currentMindMap?.nodes.filter(n => n.parentId === null) || [];
-      if (allRootNodes.length === 1 && targetIds.includes(allRootNodes[0].id)) {
-        return false;
-      }
-    }
-    
-    return true;
+    // 如果包含主节点，完全禁止删除
+    return !hasRootNode;
   };
 
   const handleAddChild = () => {
@@ -76,6 +70,8 @@ const Toolbar: React.FC = () => {
   };
 
   const handleDelete = () => {
+    if (!canDelete()) return;
+    
     if (selectedNodeIds.length > 0) {
       selectedNodeIds.forEach(id => deleteNode(id));
     } else if (selectedNodeId) {
