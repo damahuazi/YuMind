@@ -9,7 +9,9 @@ const MindMapCanvas: React.FC = () => {
     selectedNodeId, 
     setSelectedNodeId, 
     updateNode,
-    createNewMindMap
+    createNewMindMap,
+    addNode,
+    deleteNode
   } = useMindMapStore();
   
   const [pan, setPan] = useState({ x: 400, y: 300 });
@@ -23,6 +25,34 @@ const MindMapCanvas: React.FC = () => {
       createNewMindMap();
     }
   }, [currentMindMap, createNewMindMap]);
+
+  // 键盘快捷键处理
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return; // 如果正在输入框中，不处理快捷键
+      }
+
+      if (selectedNodeId) {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          addNode(selectedNodeId);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          const selectedNode = currentMindMap?.nodes.find(n => n.id === selectedNodeId);
+          if (selectedNode?.parentId) {
+            addNode(selectedNode.parentId);
+          }
+        } else if (e.key === 'Delete' || e.key === 'Backspace') {
+          e.preventDefault();
+          deleteNode(selectedNodeId);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNodeId, currentMindMap, addNode, deleteNode]);
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.node')) return;
@@ -71,24 +101,34 @@ const MindMapCanvas: React.FC = () => {
         const parent = nodes.find(n => n.id === node.parentId);
         if (parent) {
           const startX = parent.positionX + 180;
-          const startY = parent.positionY + 40;
+          const startY = parent.positionY + 36;
           const endX = node.positionX;
-          const endY = node.positionY + 40;
+          const endY = node.positionY + 36;
           const controlX = (startX + endX) / 2;
           
           const path = `M ${startX} ${startY} C ${controlX} ${startY}, ${controlX} ${endY}, ${endX} ${endY}`;
           
           connections.push(
-            <path
-              key={`${parent.id}-${node.id}`}
-              d={path}
-              fill="none"
-              stroke={parent.color}
-              strokeWidth="3"
-              strokeOpacity="0.6"
-              strokeLinecap="round"
-              className="transition-all duration-300"
-            />
+            <g key={`${parent.id}-${node.id}`}>
+              <path
+                d={path}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="6"
+                strokeOpacity="0.2"
+                strokeLinecap="round"
+                className="transition-all duration-300"
+              />
+              <path
+                d={path}
+                fill="none"
+                stroke={parent.color}
+                strokeWidth="4"
+                strokeOpacity="0.9"
+                strokeLinecap="round"
+                className="transition-all duration-300"
+              />
+            </g>
           );
         }
       }
@@ -125,7 +165,7 @@ const MindMapCanvas: React.FC = () => {
       >
         <svg 
           className="absolute top-0 left-0 pointer-events-none"
-          style={{ width: '4000px', height: '4000px', transform: 'translate(-2000px, -2000px)' }}
+          style={{ width: '8000px', height: '8000px', overflow: 'visible' }}
         >
           {drawConnections(currentMindMap.nodes)}
         </svg>
@@ -141,12 +181,25 @@ const MindMapCanvas: React.FC = () => {
         ))}
       </div>
 
-      <div className="fixed bottom-6 left-6 bg-gray-800/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg text-sm flex items-center gap-4">
+      <div className="fixed bottom-6 left-6 bg-gray-800/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg text-sm flex flex-wrap items-center gap-3">
         <span className="text-gray-400">缩放: {Math.round(zoom * 100)}%</span>
         <div className="w-px h-5 bg-gray-600" />
         <span className="text-gray-400">节点: {currentMindMap.nodes.length}</span>
         <div className="w-px h-5 bg-gray-600" />
-        <span className="text-gray-500 text-xs">拖拽画布平移 · 滚轮缩放 · 双击编辑节点</span>
+        <span className="text-gray-500 text-xs">
+          <span className="inline-flex items-center gap-1 mr-2">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">Tab</kbd> 添加子节点
+          </span>
+          <span className="inline-flex items-center gap-1 mr-2">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">Enter</kbd> 添加同级
+          </span>
+          <span className="inline-flex items-center gap-1 mr-2">
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">Delete</kbd> 删除
+          </span>
+          <span className="inline-flex items-center gap-1">
+            拖拽平移 · 滚轮缩放 · 双击编辑
+          </span>
+        </span>
       </div>
 
       <div className="fixed bottom-6 right-6 flex flex-col gap-2">
