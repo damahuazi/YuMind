@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Plus, 
@@ -6,10 +5,13 @@ import {
   Undo2, 
   Redo2, 
   Download, 
-  FilePlus, 
+  FilePlus,
   Save,
   FolderOpen,
-  Share2
+  Share2,
+  GitBranch,
+  Copy,
+  FileText
 } from 'lucide-react';
 import { useMindMapStore } from '../hooks/useMindMapStore';
 
@@ -135,29 +137,26 @@ const Toolbar: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={createNewMindMap}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
+            className="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
             title="新建"
           >
-            <FilePlus className="w-4 h-4" />
-            <span className="text-sm">新建</span>
+            <FilePlus className="w-5 h-5" />
           </button>
 
           <button
             onClick={handleOpenExisting}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
+            className="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
             title="打开"
           >
-            <FolderOpen className="w-4 h-4" />
-            <span className="text-sm">打开</span>
+            <FolderOpen className="w-5 h-5" />
           </button>
 
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
+            className="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
             title="保存"
           >
-            <Save className="w-4 h-4" />
-            <span className="text-sm">保存</span>
+            <Save className="w-5 h-5" />
           </button>
 
           <div className="w-px h-8 bg-gray-600 mx-2" />
@@ -165,49 +164,46 @@ const Toolbar: React.FC = () => {
           <button
             onClick={handleAddChild}
             disabled={!selectedNodeId && selectedNodeIds.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            title="添加子节点"
+            className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            title="添加子节点 (Tab)"
           >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm">子节点</span>
+            <GitBranch className="w-5 h-5" />
           </button>
 
           <button
             onClick={handleAddSibling}
             disabled={!selectedNodeId && selectedNodeIds.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            title="添加同级节点"
+            className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            title="添加同级节点 (Enter)"
           >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm">同级</span>
+            <Copy className="w-5 h-5" />
           </button>
 
           <button
             onClick={handleDelete}
             disabled={!canDelete()}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            title="删除节点"
+            className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            title="删除节点 (Delete)"
           >
-            <Trash2 className="w-4 h-4" />
-            <span className="text-sm">删除</span>
+            <Trash2 className="w-5 h-5" />
           </button>
 
           <div className="w-px h-8 bg-gray-600 mx-2" />
 
           <button
             onClick={undo}
-            className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
-            title="撤销"
+            className="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
+            title="撤销 (Ctrl+Z)"
           >
-            <Undo2 className="w-4 h-4" />
+            <Undo2 className="w-5 h-5" />
           </button>
 
           <button
             onClick={redo}
-            className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
-            title="重做"
+            className="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
+            title="重做 (Ctrl+Y)"
           >
-            <Redo2 className="w-4 h-4" />
+            <Redo2 className="w-5 h-5" />
           </button>
 
           <div className="w-px h-8 bg-gray-600 mx-2" />
@@ -215,11 +211,10 @@ const Toolbar: React.FC = () => {
           <button
             onClick={handleExport}
             disabled={!currentMindMap}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             title="导出"
           >
-            <Download className="w-4 h-4" />
-            <span className="text-sm">导出</span>
+            <Download className="w-5 h-5" />
           </button>
         </div>
       </div>
