@@ -36,34 +36,52 @@ const PropertyPanel: React.FC = () => {
     updateMindMapStyle
   } = useMindMapStore();
 
+  console.log('PropertyPanel Debug:', {
+    selectedNodeIds,
+    selectedNodeId,
+    currentMindMapNodesCount: currentMindMap?.nodes.length,
+    currentMindMapNodes: currentMindMap?.nodes.map(n => ({ id: n.id, level: n.level, hasStyle: !!n.style }))
+  });
+
   const getSelectionInfo = () => {
     if (selectedNodeIds.length === 0) {
+      console.log('No nodes selected (selectedNodeIds is empty)');
       return { type: 'none' as const };
     }
 
     const selectedNodes = currentMindMap?.nodes.filter(n => selectedNodeIds.includes(n.id)) || [];
+    console.log('Selected nodes:', selectedNodes);
+    
     if (selectedNodes.length === 0) {
+      console.log('No nodes found in currentMindMap matching selectedNodeIds');
       return { type: 'none' as const };
     }
 
     const levels = selectedNodes.map(n => n.level);
     const uniqueLevels = new Set(levels);
+    console.log('Unique levels:', Array.from(uniqueLevels));
     
     if (uniqueLevels.size === 1) {
-      return { type: 'same-level' as const, level: levels[0], nodes: selectedNodes };
+      const result = { type: 'same-level' as const, level: levels[0], nodes: selectedNodes };
+      console.log('Returning same-level:', result);
+      return result;
     } else {
       const highestLevel = Math.min(...levels);
       const highestNode = selectedNodes.find(n => n.level === highestLevel);
-      return { 
+      console.log('Highest level node:', highestNode);
+      const result = { 
         type: 'multi-level' as const, 
         highestLevel, 
         highestNode,
         nodes: selectedNodes 
       };
+      console.log('Returning multi-level:', result);
+      return result;
     }
   };
 
   const selectionInfo = getSelectionInfo();
+  console.log('Selection Info:', selectionInfo);
 
   const handleStyleChange = (styleUpdates: Partial<NodeStyle>) => {
     if (selectionInfo.type === 'none') return;
@@ -175,8 +193,11 @@ const PropertyPanel: React.FC = () => {
     if (selectionInfo.type === 'none') return null;
 
     const currentStyle = selectionInfo.type === 'same-level' || selectionInfo.type === 'multi-level'
-      ? selectionInfo.highestNode?.style
+      ? (selectionInfo.type === 'same-level' ? selectionInfo.nodes[0]?.style : selectionInfo.highestNode?.style)
       : null;
+
+    console.log('currentStyle:', currentStyle);
+    console.log('selectionInfo.type:', selectionInfo.type);
 
     if (!currentStyle) return null;
 
