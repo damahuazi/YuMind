@@ -94,12 +94,15 @@ const MindMapCanvas: React.FC = () => {
   // 处理画布鼠标事件
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.node')) return;
+    
+    if ((e.target as HTMLElement).closest('.property-panel')) {
+      return;
+    }
 
     const clientX = e.clientX;
     const clientY = e.clientY;
 
     if (e.ctrlKey || e.metaKey) {
-      // 开始框选
       const { worldX, worldY } = screenToWorld(clientX, clientY);
       setIsSelecting(true);
       setSelectionBox({
@@ -109,7 +112,6 @@ const MindMapCanvas: React.FC = () => {
         endY: worldY
       });
     } else if (!isDraggingNodes && selectedNodeIds.length === 0) {
-      // 画布平移
       setIsPanning(true);
       setPanStart({ x: clientX - pan.x, y: clientY - pan.y });
       setSelectedNodeId(null);

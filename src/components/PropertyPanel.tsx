@@ -36,52 +36,34 @@ const PropertyPanel: React.FC = () => {
     updateMindMapStyle
   } = useMindMapStore();
 
-  console.log('PropertyPanel Debug:', {
-    selectedNodeIds,
-    selectedNodeId,
-    currentMindMapNodesCount: currentMindMap?.nodes.length,
-    currentMindMapNodes: currentMindMap?.nodes.map(n => ({ id: n.id, level: n.level, hasStyle: !!n.style }))
-  });
-
   const getSelectionInfo = () => {
     if (selectedNodeIds.length === 0) {
-      console.log('No nodes selected (selectedNodeIds is empty)');
       return { type: 'none' as const };
     }
 
     const selectedNodes = currentMindMap?.nodes.filter(n => selectedNodeIds.includes(n.id)) || [];
-    console.log('Selected nodes:', selectedNodes);
-    
     if (selectedNodes.length === 0) {
-      console.log('No nodes found in currentMindMap matching selectedNodeIds');
       return { type: 'none' as const };
     }
 
     const levels = selectedNodes.map(n => n.level);
     const uniqueLevels = new Set(levels);
-    console.log('Unique levels:', Array.from(uniqueLevels));
     
     if (uniqueLevels.size === 1) {
-      const result = { type: 'same-level' as const, level: levels[0], nodes: selectedNodes };
-      console.log('Returning same-level:', result);
-      return result;
+      return { type: 'same-level' as const, level: levels[0], nodes: selectedNodes };
     } else {
       const highestLevel = Math.min(...levels);
       const highestNode = selectedNodes.find(n => n.level === highestLevel);
-      console.log('Highest level node:', highestNode);
-      const result = { 
+      return { 
         type: 'multi-level' as const, 
         highestLevel, 
         highestNode,
         nodes: selectedNodes 
       };
-      console.log('Returning multi-level:', result);
-      return result;
     }
   };
 
   const selectionInfo = getSelectionInfo();
-  console.log('Selection Info:', selectionInfo);
 
   const handleStyleChange = (styleUpdates: Partial<NodeStyle>) => {
     if (selectionInfo.type === 'none') return;
@@ -95,7 +77,8 @@ const PropertyPanel: React.FC = () => {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (selectionInfo.type === 'same-level' && selectionInfo.nodes.length > 0) {
       selectionInfo.nodes.forEach(node => {
         resetNodeStyle(node.id);
@@ -103,7 +86,8 @@ const PropertyPanel: React.FC = () => {
     }
   };
 
-  const handleUpdateSameLevel = () => {
+  const handleUpdateSameLevel = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (selectionInfo.type === 'same-level' && selectionInfo.highestNode) {
       const style = selectionInfo.highestNode.style;
       updateSameLevelNodes(selectionInfo.level, style);
@@ -114,6 +98,10 @@ const PropertyPanel: React.FC = () => {
     if (currentMindMap) {
       updateMindMapStyle(updates);
     }
+  };
+
+  const stopPropagation = (e: React.MouseEvent | React.ChangeEvent) => {
+    e.stopPropagation();
   };
 
   const renderCanvasSettings = () => {
@@ -129,7 +117,11 @@ const PropertyPanel: React.FC = () => {
           <input
             type="color"
             value={style.backgroundColor}
-            onChange={(e) => handleBackgroundChange({ backgroundColor: e.target.value })}
+            onChange={(e) => {
+              stopPropagation(e);
+              handleBackgroundChange({ backgroundColor: e.target.value });
+            }}
+            onMouseDown={stopPropagation}
             className="w-full h-10 rounded-lg cursor-pointer"
           />
         </div>
@@ -142,7 +134,11 @@ const PropertyPanel: React.FC = () => {
             {(['none', 'grid', 'dots', 'lines'] as BackgroundPattern[]).map((pattern) => (
               <button
                 key={pattern}
-                onClick={() => handleBackgroundChange({ backgroundPattern: pattern })}
+                onClick={(e) => {
+                  stopPropagation(e);
+                  handleBackgroundChange({ backgroundPattern: pattern });
+                }}
+                onMouseDown={stopPropagation}
                 className={`p-2 rounded-lg text-xs transition-all ${
                   style.backgroundPattern === pattern
                     ? 'bg-indigo-600 text-white'
@@ -166,7 +162,11 @@ const PropertyPanel: React.FC = () => {
             {(['radial', 'horizontal', 'vertical'] as LayoutDirection[]).map((direction) => (
               <button
                 key={direction}
-                onClick={() => handleBackgroundChange({ layoutDirection: direction })}
+                onClick={(e) => {
+                  stopPropagation(e);
+                  handleBackgroundChange({ layoutDirection: direction });
+                }}
+                onMouseDown={stopPropagation}
                 className={`p-3 rounded-lg transition-all flex flex-col items-center gap-1 ${
                   style.layoutDirection === direction
                     ? 'bg-indigo-600 text-white'
@@ -196,9 +196,6 @@ const PropertyPanel: React.FC = () => {
       ? (selectionInfo.type === 'same-level' ? selectionInfo.nodes[0]?.style : selectionInfo.highestNode?.style)
       : null;
 
-    console.log('currentStyle:', currentStyle);
-    console.log('selectionInfo.type:', selectionInfo.type);
-
     if (!currentStyle) return null;
 
     return (
@@ -211,7 +208,11 @@ const PropertyPanel: React.FC = () => {
             {(['small', 'medium', 'large'] as FontSize[]).map((size) => (
               <button
                 key={size}
-                onClick={() => handleStyleChange({ fontSize: size })}
+                onClick={(e) => {
+                  stopPropagation(e);
+                  handleStyleChange({ fontSize: size });
+                }}
+                onMouseDown={stopPropagation}
                 className={`p-2 rounded-lg text-sm transition-all ${
                   currentStyle.fontSize === size
                     ? 'bg-indigo-600 text-white'
@@ -233,7 +234,11 @@ const PropertyPanel: React.FC = () => {
           <input
             type="color"
             value={currentStyle.fontColor}
-            onChange={(e) => handleStyleChange({ fontColor: e.target.value })}
+            onChange={(e) => {
+              stopPropagation(e);
+              handleStyleChange({ fontColor: e.target.value });
+            }}
+            onMouseDown={stopPropagation}
             className="w-full h-10 rounded-lg cursor-pointer"
           />
         </div>
@@ -246,7 +251,11 @@ const PropertyPanel: React.FC = () => {
             {(['left', 'center', 'right'] as TextAlign[]).map((align) => (
               <button
                 key={align}
-                onClick={() => handleStyleChange({ textAlign: align })}
+                onClick={(e) => {
+                  stopPropagation(e);
+                  handleStyleChange({ textAlign: align });
+                }}
+                onMouseDown={stopPropagation}
                 className={`p-2 rounded-lg transition-all ${
                   currentStyle.textAlign === align
                     ? 'bg-indigo-600 text-white'
@@ -269,11 +278,19 @@ const PropertyPanel: React.FC = () => {
             <input
               type="color"
               value={currentStyle.fillColor === 'transparent' ? '#000000' : currentStyle.fillColor}
-              onChange={(e) => handleStyleChange({ fillColor: e.target.value })}
+              onChange={(e) => {
+                stopPropagation(e);
+                handleStyleChange({ fillColor: e.target.value });
+              }}
+              onMouseDown={stopPropagation}
               className="flex-1 h-10 rounded-lg cursor-pointer"
             />
             <button
-              onClick={() => handleStyleChange({ fillColor: 'transparent' })}
+              onClick={(e) => {
+                stopPropagation(e);
+                handleStyleChange({ fillColor: 'transparent' });
+              }}
+              onMouseDown={stopPropagation}
               className={`px-4 rounded-lg transition-all ${
                 currentStyle.fillColor === 'transparent'
                   ? 'bg-indigo-600 text-white'
@@ -292,7 +309,11 @@ const PropertyPanel: React.FC = () => {
           <input
             type="color"
             value={currentStyle.borderColor}
-            onChange={(e) => handleStyleChange({ borderColor: e.target.value })}
+            onChange={(e) => {
+              stopPropagation(e);
+              handleStyleChange({ borderColor: e.target.value });
+            }}
+            onMouseDown={stopPropagation}
             className="w-full h-10 rounded-lg cursor-pointer"
           />
         </div>
@@ -305,7 +326,11 @@ const PropertyPanel: React.FC = () => {
             {(['thin', 'medium', 'thick'] as BorderWidth[]).map((width) => (
               <button
                 key={width}
-                onClick={() => handleStyleChange({ borderWidth: width })}
+                onClick={(e) => {
+                  stopPropagation(e);
+                  handleStyleChange({ borderWidth: width });
+                }}
+                onMouseDown={stopPropagation}
                 className={`p-2 rounded-lg text-sm transition-all ${
                   currentStyle.borderWidth === width
                     ? 'bg-indigo-600 text-white'
@@ -324,12 +349,14 @@ const PropertyPanel: React.FC = () => {
           <div className="pt-4 border-t border-gray-700 flex gap-2">
             <button
               onClick={handleReset}
+              onMouseDown={stopPropagation}
               className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all"
             >
               重置
             </button>
             <button
               onClick={handleUpdateSameLevel}
+              onMouseDown={stopPropagation}
               className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all"
             >
               更新同级
@@ -345,6 +372,7 @@ const PropertyPanel: React.FC = () => {
       <div 
         className="fixed right-0 top-16 bottom-0 w-12 bg-gray-900 border-l border-gray-700 flex items-center justify-center cursor-pointer hover:bg-gray-800 transition-colors z-40"
         onClick={togglePanelCollapse}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <ChevronLeft className="w-5 h-5 text-gray-400" />
       </div>
@@ -352,7 +380,10 @@ const PropertyPanel: React.FC = () => {
   }
 
   return (
-    <div className="fixed right-0 top-16 bottom-0 w-80 bg-gray-900/95 backdrop-blur-sm border-l border-gray-700 overflow-y-auto z-40">
+    <div 
+      className="fixed right-0 top-16 bottom-0 w-80 bg-gray-900/95 backdrop-blur-sm border-l border-gray-700 overflow-y-auto z-40"
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -360,7 +391,11 @@ const PropertyPanel: React.FC = () => {
             属性面板
           </h2>
           <button
-            onClick={togglePanelCollapse}
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePanelCollapse();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
             className="p-1 hover:bg-gray-800 rounded transition-colors"
           >
             <ChevronRight className="w-5 h-5 text-gray-400" />
