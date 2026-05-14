@@ -20,7 +20,7 @@ const MindMapCanvas: React.FC = () => {
     updateNode,
     updateMultipleNodes,
     addFreeNode,
-    deleteNode,
+    deleteMultipleNodes,
     createNewMindMap
   } = useMindMapStore();
 
@@ -70,34 +70,19 @@ const MindMapCanvas: React.FC = () => {
         }
       }
       
-      // Delete 删除节点 - 主节点完全禁止删除
+      // Delete 删除节点 - 如果多选包含主节点，只删除非主节点
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
         e.preventDefault();
         const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : [selectedNodeId];
         
-        // 检查是否包含任何主节点（isRootNode === true）
-        const hasRootNode = targetIds.some(id => {
-          const node = currentMindMap?.nodes.find(n => n.id === id);
-          return node?.isRootNode === true;
-        });
-        
-        // 如果包含主节点，直接返回，不允许删除
-        if (hasRootNode) {
-          return;
-        }
-        
-        // 删除所有选中的非主节点
-        if (selectedNodeIds.length > 0) {
-          selectedNodeIds.forEach(id => deleteNode(id));
-        } else {
-          deleteNode(selectedNodeId);
-        }
+        // 直接调用批量删除，内部会过滤掉主节点
+        deleteMultipleNodes(targetIds);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodeId, selectedNodeIds, currentMindMap, deleteNode]);
+  }, [selectedNodeId, selectedNodeIds, currentMindMap, deleteMultipleNodes]);
 
   // 处理画布鼠标事件
   const handleCanvasMouseDown = (e: React.MouseEvent) => {

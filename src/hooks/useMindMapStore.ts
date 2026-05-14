@@ -35,6 +35,7 @@ interface MindMapState {
   updateNode: (nodeId: string, updates: Partial<Node>) => void;
   updateMultipleNodes: (updates: Record<string, Partial<Node>>) => void;
   deleteNode: (nodeId: string) => void;
+  deleteMultipleNodes: (nodeIds: string[]) => void;
   saveMindMap: () => void;
   loadMindMap: (id: string) => void;
   createNewMindMap: () => void;
@@ -239,6 +240,49 @@ export const useMindMapStore = create<MindMapState>()(
           
           const nodesToDelete = deleteNodeRecursive(nodeId);
           const newNodes = state.currentMindMap.nodes.filter(n => !nodesToDelete.includes(n.id));
+          
+          const newMindMap = {
+            ...state.currentMindMap,
+            nodes: newNodes,
+            updatedAt: new Date().toISOString()
+          };
+          
+          const newHistory = state.history.slice(0, state.historyIndex + 1);
+          newHistory.push(JSON.parse(JSON.stringify(newMindMap)));
+          
+          return {
+            currentMindMap: newMindMap,
+            selectedNodeId: null,
+            selectedNodeIds: [],
+            history: newHistory,
+            historyIndex: newHistory.length - 1
+          };
+        });
+      },
+      
+      deleteMultipleNodes: (nodeIds) => {
+        set((state) => {
+          if (!state.currentMindMap || nodeIds.length === 0) return state;
+          
+          // 过滤掉主节点
+          const idsToDelete = nodeIds.filter(id => {
+            const node = state.currentMindMap!.nodes.find(n => n.id === id);
+            return node && !node.isRootNode;
+          });
+          
+          if (idsToDelete.length === 0) return state;
+          
+          // 收集所有要删除的节点（包括子节点）
+          const nodesToDeleteSet = new Set<string>();
+          const deleteNodeRecursive = (id: string) => {
+            const children = state.currentMindMap!.nodes.filter(n => n.parentId === id);
+            nodesToDeleteSet.add(id);
+            children.forEach(child => deleteNodeRecursive(child.id));
+          };
+          
+          idsToDelete.forEach(id => deleteNodeRecursive(id));
+          
+          const newNodes = state.currentMindMap.nodes.filter(n => !nodesToDeleteSet.has(n.id));
           
           const newMindMap = {
             ...state.currentMindMap,

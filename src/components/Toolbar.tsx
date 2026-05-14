@@ -21,7 +21,7 @@ const Toolbar: React.FC = () => {
     selectedNodeId, 
     selectedNodeIds,
     addNode, 
-    deleteNode, 
+    deleteMultipleNodes, 
     undo, 
     redo,
     createNewMindMap,
@@ -31,20 +31,10 @@ const Toolbar: React.FC = () => {
     loadMindMap
   } = useMindMapStore();
 
-  // 判断是否可以删除 - 主节点完全禁止删除
+  // 判断是否可以删除 - 只要有选中节点就可以删除按钮可用
   const canDelete = () => {
     if (selectedNodeIds.length === 0 && !selectedNodeId) return false;
-    
-    const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : [selectedNodeId];
-    
-    // 检查是否包含任何主节点（isRootNode === true）
-    const hasRootNode = targetIds.some(id => {
-      const node = currentMindMap?.nodes.find(n => n.id === id);
-      return node?.isRootNode === true;
-    });
-    
-    // 如果包含主节点，完全禁止删除
-    return !hasRootNode;
+    return true;
   };
 
   const handleAddChild = () => {
@@ -74,11 +64,10 @@ const Toolbar: React.FC = () => {
   const handleDelete = () => {
     if (!canDelete()) return;
     
-    if (selectedNodeIds.length > 0) {
-      selectedNodeIds.forEach(id => deleteNode(id));
-    } else if (selectedNodeId) {
-      deleteNode(selectedNodeId);
-    }
+    const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : [selectedNodeId];
+    
+    // 直接调用批量删除，内部会过滤掉主节点
+    deleteMultipleNodes(targetIds);
   };
 
   const handleExport = () => {
