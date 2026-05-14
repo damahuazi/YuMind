@@ -188,16 +188,16 @@ const MindMapCanvas: React.FC = () => {
         <div className="w-px h-5 bg-gray-600" />
         <span className="text-gray-500 text-xs">
           <span className="inline-flex items-center gap-1 mr-2">
-            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">Tab</kbd> 添加子节点
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">Tab</kbd> 子节点
           </span>
           <span className="inline-flex items-center gap-1 mr-2">
-            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">Enter</kbd> 添加同级
+            <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">Enter</kbd> 同级
           </span>
           <span className="inline-flex items-center gap-1 mr-2">
             <kbd className="px-1.5 py-0.5 bg-gray-700 rounded text-xs">Delete</kbd> 删除
           </span>
           <span className="inline-flex items-center gap-1">
-            拖拽平移 · 滚轮缩放 · 双击编辑
+            拖拽节点 · 双击编辑 · 画布平移 · 滚轮缩放
           </span>
         </span>
       </div>

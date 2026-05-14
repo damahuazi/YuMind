@@ -1,6 +1,4 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { GripVertical, Edit3 } from 'lucide-react';
 import { Node as NodeType } from '../hooks/useMindMapStore';
 
 interface NodeProps {
@@ -48,11 +46,6 @@ const Node: React.FC<NodeProps> = ({ node, isSelected, onSelect, onUpdate }) => 
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isEditing) return;
-    e.stopPropagation();
-    onSelect();
-  };
-
-  const handleGripMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelect();
     setIsDragging(true);
@@ -116,51 +109,35 @@ const Node: React.FC<NodeProps> = ({ node, isSelected, onSelect, onUpdate }) => 
       ref={nodeRef}
       className="absolute cursor-default select-none"
       style={nodeStyle}
-      onMouseDown={handleMouseDown}
-      onDoubleClick={handleDoubleClick}
     >
       <div
         className={`
           relative min-w-[180px] max-w-[280px] rounded-2xl p-4 
           transition-all duration-200 ease-out
           ${isSelected ? 'scale-105 z-50' : 'hover:scale-102 z-10'}
-          ${isDragging ? 'cursor-grabbing opacity-90' : 'cursor-pointer'}
+          ${isDragging ? 'cursor-grabbing opacity-90' : 'cursor-grab'}
         `}
         style={getColorStyle(node.color)}
+        onMouseDown={handleMouseDown}
+        onDoubleClick={handleDoubleClick}
       >
-        <div className="flex items-start gap-2">
-          <div 
-            className="mt-1 cursor-grab active:cursor-grabbing text-white/70 hover:text-white transition-colors"
-            onMouseDown={handleGripMouseDown}
-          >
-            <GripVertical className="w-4 h-4" />
-          </div>
-          
-          <div className="flex-1">
-            {isEditing ? (
-              <input
-                ref={inputRef}
-                type="text"
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                onBlur={handleEditComplete}
-                onKeyDown={handleKeyDown}
-                className="w-full bg-white/20 text-white placeholder-white/50 border border-white/30 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/50"
-                placeholder="输入内容..."
-              />
-            ) : (
-              <div className="text-white font-medium leading-relaxed break-words">
-                {node.content}
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-            className="mt-1 text-white/50 hover:text-white transition-colors"
-          >
-            <Edit3 className="w-4 h-4" />
-          </button>
+        <div>
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              onBlur={handleEditComplete}
+              onKeyDown={handleKeyDown}
+              className="w-full bg-white/20 text-white placeholder-white/50 border border-white/30 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/50"
+              placeholder="输入内容..."
+            />
+          ) : (
+            <div className="text-white font-medium leading-relaxed break-words">
+              {node.content}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -168,4 +145,3 @@ const Node: React.FC<NodeProps> = ({ node, isSelected, onSelect, onUpdate }) => 
 };
 
 export default Node;
-
