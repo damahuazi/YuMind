@@ -1,57 +1,64 @@
-# React + TypeScript + Vite
+# YuMind - 思维导图工具
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一款功能完备的 Web 端思维导图应用，帮助用户进行头脑风暴、知识管理和项目规划。
 
-Currently, two official plugins are available:
+## 功能特性
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 核心功能
+- **节点操作**：创建子节点和同级节点，双击编辑内容，自定义节点颜色
+- **画布交互**：支持节点拖拽、画布缩放和整体平移
+- **文件管理**：新建、保存、打开思维导图，支持 JSON 格式导出
+- **历史记录**：支持撤销和重做操作
 
-## Expanding the ESLint configuration
+### 界面特点
+- 深蓝色主题搭配渐变色节点
+- 圆角卡片式节点设计，带阴影效果
+- 平滑曲线连接各节点
+- 简洁的顶部工具栏布局
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 技术栈
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- **前端框架**：React 18 + TypeScript
+- **构建工具**：Vite
+- **样式方案**：Tailwind CSS
+- **状态管理**：Zustand
+- **图标库**：Lucide React
+
+## 快速开始
+
+```bash
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+
+# 构建生产版本
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 使用说明
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. **新建思维导图**：点击工具栏「新建」按钮
+2. **添加节点**：选中节点后，点击「添加子节点」或「添加同级节点」
+3. **编辑内容**：双击节点即可编辑文本
+4. **调整结构**：拖拽节点到目标位置
+5. **保存/导出**：点击「保存」本地存储，或「导出」下载 JSON 文件
 
-export default tseslint.config({
-  extends: [
-    // other configs...
-    // Enable lint rules for React
-    reactX.configs['recommended-typescript'],
-    // Enable lint rules for React DOM
-    reactDom.configs.recommended,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 项目结构
+
 ```
+src/
+├── components/          # 组件目录
+│   ├── MindMapCanvas.tsx # 主画布组件
+│   ├── Node.tsx         # 节点组件
+│   └── Toolbar.tsx       # 工具栏组件
+├── hooks/               # 自定义 Hooks
+│   └── useMindMapStore.ts # 状态管理
+├── App.tsx              # 主应用组件
+└── main.tsx             # 入口文件
+```
+
+## 目标用户
+
+学生、教师、项目经理、创意工作者等需要可视化思维工具的人群。
