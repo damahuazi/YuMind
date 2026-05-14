@@ -65,23 +65,54 @@ const Node: React.FC<NodeProps> = ({
     onDragStart(e);
   };
 
-  const adjustColor = (color: string, amount: number): string => {
-    const hex = color.replace('#', '');
-    const num = parseInt(hex, 16);
-    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
-    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
-    const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
-    return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`;
-  };
-
   const getNodeStyle = () => {
-    const lighterColor = adjustColor(node.color, 20);
+    const { style } = node;
+    
+    const borderWidthMap = {
+      thin: '1px',
+      medium: '2px',
+      thick: '4px'
+    };
+    
+    const fontSizeMap = {
+      small: 'text-sm',
+      medium: 'text-base',
+      large: 'text-lg'
+    };
+    
+    const backgroundColor = style.fillColor === 'transparent' 
+      ? 'rgba(0,0,0,0.5)' 
+      : style.fillColor;
+    
     return {
-      background: `linear-gradient(135deg, ${node.color}, ${lighterColor})`,
+      backgroundColor,
+      borderColor: style.borderColor,
+      borderWidth: borderWidthMap[style.borderWidth],
+      borderRadius: `${style.borderRadius}px`,
       boxShadow: isSelected || isMultiSelected
         ? `0 0 0 4px rgba(255,255,255,0.3), 0 10px 40px rgba(0,0,0,0.3)`
         : `0 4px 20px rgba(0,0,0,0.2)`,
     };
+  };
+
+  const getFontSizeClass = () => {
+    const { style } = node;
+    const fontSizeMap = {
+      small: 'text-sm',
+      medium: 'text-base',
+      large: 'text-lg'
+    };
+    return fontSizeMap[style.fontSize];
+  };
+
+  const getTextAlignClass = () => {
+    const { style } = node;
+    const alignMap = {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right'
+    };
+    return alignMap[style.textAlign];
   };
 
   return (
@@ -95,7 +126,7 @@ const Node: React.FC<NodeProps> = ({
     >
       <div
         className={`
-          relative min-w-[180px] max-w-[280px] rounded-2xl p-4 
+          relative min-w-[180px] max-w-[280px] p-4 
           transition-all duration-200 ease-out
           ${isSelected || isMultiSelected ? 'scale-105' : 'hover:scale-102'}
         `}
@@ -112,11 +143,15 @@ const Node: React.FC<NodeProps> = ({
               onChange={(e) => setEditContent(e.target.value)}
               onBlur={handleEditComplete}
               onKeyDown={handleKeyDown}
-              className="w-full bg-white/20 text-white placeholder-white/50 border border-white/30 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className={`w-full bg-white/20 placeholder-white/50 border border-white/30 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-white/50 ${getTextAlignClass()}`}
+              style={{ color: node.style.fontColor }}
               placeholder="输入内容..."
             />
           ) : (
-            <div className="text-white font-medium leading-relaxed break-words">
+            <div 
+              className={`font-medium leading-relaxed break-words ${getFontSizeClass()} ${getTextAlignClass()}`}
+              style={{ color: node.style.fontColor }}
+            >
               {node.content}
             </div>
           )}

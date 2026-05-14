@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useMindMapStore, Node as NodeType } from '../hooks/useMindMapStore';
 import Node from './Node';
+import PropertyPanel from './PropertyPanel';
 
 interface SelectionBox {
   startX: number;
@@ -33,6 +34,12 @@ const MindMapCanvas: React.FC = () => {
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  const canvasStyle = currentMindMap?.style || {
+    backgroundColor: '#1e293b',
+    backgroundPattern: 'grid',
+    layoutDirection: 'radial'
+  };
 
   useEffect(() => {
     if (!currentMindMap) {
@@ -290,29 +297,71 @@ const MindMapCanvas: React.FC = () => {
     );
   };
 
+  const renderBackgroundPattern = () => {
+    const { backgroundPattern } = canvasStyle;
+    
+    if (backgroundPattern === 'none') return null;
+
+    if (backgroundPattern === 'grid') {
+      return (
+        <svg className="absolute inset-0 pointer-events-none opacity-10" width="100%" height="100%">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+      );
+    }
+
+    if (backgroundPattern === 'dots') {
+      return (
+        <svg className="absolute inset-0 pointer-events-none opacity-10" width="100%" height="100%">
+          <defs>
+            <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse">
+              <circle cx="20" cy="20" r="1.5" fill="white"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#dots)" />
+        </svg>
+      );
+    }
+
+    if (backgroundPattern === 'lines') {
+      return (
+        <svg className="absolute inset-0 pointer-events-none opacity-10" width="100%" height="100%">
+          <defs>
+            <pattern id="lines" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 0 20 L 40 20" fill="none" stroke="white" strokeWidth="1"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#lines)" />
+        </svg>
+      );
+    }
+
+    return null;
+  };
+
   if (!currentMindMap) return null;
 
   return (
     <div
       ref={canvasRef}
-      className="fixed inset-0 pt-16 overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+      className="fixed inset-0 pt-16 overflow-hidden"
       onMouseDown={handleCanvasMouseDown}
       onMouseMove={handleCanvasMouseMove}
       onMouseUp={handleCanvasMouseUp}
       onMouseLeave={handleCanvasMouseUp}
       onDoubleClick={handleCanvasDoubleClick}
       onWheel={handleWheel}
-      style={{ cursor: isPanning ? 'grabbing' : isSelecting ? 'crosshair' : 'default' }}
+      style={{ 
+        backgroundColor: canvasStyle.backgroundColor,
+        cursor: isPanning ? 'grabbing' : isSelecting ? 'crosshair' : 'default' 
+      }}
     >
-      {/* 网格背景 */}
-      <svg className="absolute inset-0 pointer-events-none opacity-10" width="100%" height="100%">
-        <defs>
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
-      </svg>
+      {renderBackgroundPattern()}
 
       {/* 画布内容 */}
       <div
@@ -395,6 +444,8 @@ const MindMapCanvas: React.FC = () => {
           ⟲
         </button>
       </div>
+
+      <PropertyPanel />
     </div>
   );
 };
